@@ -88,7 +88,8 @@ def put_stress(text, stress_symbol="'"):
         except IndexError:
             temp = ''
         if temp == token.lower():
-            final.append(accented_phrase[0].replace("'", stress_symbol))
+            stress_position = accented_phrase[0].find("'")
+            final.append(token[:stress_position] + stress_symbol + token[stress_position:])
             accented_phrase = accented_phrase[1:]
         else:
             final.append(token)
