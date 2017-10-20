@@ -1,6 +1,7 @@
 from keras.models import model_from_json
 import numpy as np
 import re
+from tokenizer import tokenize
 
 VOWELS = 'аеиоуэюяыё'
 REG = '[{}].*[{}]'.format(VOWELS, VOWELS)
@@ -62,8 +63,40 @@ def predict(model, word):
         return(acc_word)
 
 
-def main():
+def put_stress(text, stress_symbol="'"):
+    """This function gets any string as an input and returns the same string
+    but only with the predicted stress marks.
+    
+    All the formating is preserved using this function. 
+    """
+    
+    words = parse_the_phrase(text)
+    tokens = tokenize(text)
+    accented_phrase = []
+    pluswords = add_endings(words)
 
+    for w in pluswords:
+        if not bool(re.search(REG, w)):
+            pass
+        else:
+            accented_phrase.append(predict(model, w))
+    final = []
+    
+    for token in tokens:
+        try:
+            temp = accented_phrase[0].replace("'", '')
+        except IndexError:
+            temp = ''
+        if temp == token.lower():
+            final.append(accented_phrase[0].replace("'", stress_symbol))
+            accented_phrase = accented_phrase[1:]
+        else:
+            final.append(token)
+    final = ''.join(final)
+    return final
+
+
+def main():
     with open("text_model.json", 'r') as content_file:
         json_string = content_file.read()
     model = model_from_json(json_string)
@@ -71,16 +104,7 @@ def main():
 
     while True:
         phrase = input("Russian phrase to accentuate: ")
-        words = parse_the_phrase(phrase)
-        accented_phrase = []
-        pluswords = add_endings(words)
-
-        for w in pluswords:
-            if not bool(re.search(REG, w)):
-                accented_phrase.append(w)
-            else:
-                accented_phrase.append(predict(model, w))
-        accented_phrase = ' '.join(accented_phrase)
+        accented_phrase = put_stress(phrase)
         print(accented_phrase)
 
 def for_bot(phrase):
